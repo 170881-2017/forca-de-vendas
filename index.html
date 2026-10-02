@@ -250,6 +250,31 @@ details.card[open]>summary{margin-bottom:14px}
 .cb .stk{width:100%;max-width:64px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative}
 .cb .stk i{display:block;width:100%;border-radius:4px 4px 0 0}
 .cb .tot-b{background:var(--accent-soft)} .cb .w-b{background:var(--accent);border-radius:0!important}
+/* gráficos por vendedor */
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px}
+.hb{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.hb-r{display:grid;grid-template-columns:minmax(70px,120px) minmax(0,1fr) auto;gap:10px;align-items:center;position:relative;border-radius:6px;padding:2px 0;outline-offset:1px}
+.hb-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.hb-t{position:relative;height:16px;background:var(--sunk);border-radius:4px}
+.hb-t i{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0;min-width:3px}
+.hb-a{background:var(--accent)}
+.hb-t .hb-a+.hb-b{top:4px;bottom:4px}
+.hb-b{background:var(--link)}
+.hb-t i:only-of-type{border-radius:0 4px 4px 0}
+.hb-m{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);border-radius:1px;box-shadow:0 0 0 2px var(--surface)}
+.hb-v{text-align:right;white-space:nowrap;color:var(--ink)}
+.hb-leg{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.hb-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.hb-leg i.hb-a{background:var(--accent)} .hb-leg i.hb-b{background:var(--link)}
+.sm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sm-c{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);border-radius:8px;min-width:0}
+.cols{display:flex;gap:2px;align-items:flex-end;height:64px;border-bottom:1px solid var(--line)}
+.col1{flex:1;height:100%;display:flex;align-items:flex-end;position:relative;border-radius:4px 4px 0 0}
+.col1 i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
+.col1:hover i,.col1:focus i,.hb-r:hover .hb-a,.hb-r:focus .hb-a{filter:brightness(1.25)}
+.cols-l{display:flex;gap:2px;font-size:.66rem;color:var(--muted)} .cols-l span{flex:1;text-align:center}
+[data-tip]:hover::after,[data-tip]:focus::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:.76rem;font-weight:600;padding:6px 9px;border-radius:6px;white-space:nowrap;z-index:6;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.hb-r[data-tip]:hover::after,.hb-r[data-tip]:focus::after{left:auto;right:0;transform:none}
 @media (prefers-reduced-motion:no-preference){.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(30px);opacity:.6}}}
 </style>
 
@@ -932,8 +957,49 @@ function vGestao(){
   <div class="grid2" style="margin-top:18px"><div class="card"><div class="card-h"><h3>Forecast por mês de fechamento</h3><span class="xs mut">claro: total · escuro: ponderado</span></div>
       <div class="cols-bars">${meses.map(x=>`<div class="cb"><span class="num">${money(x.w)}</span><div class="stk"><i class="tot-b" style="height:${(x.t-x.w)/fmx*100}%"></i><i class="w-b" style="height:${x.w/fmx*100}%"></i></div><b style="color:var(--ink)">${x.l}</b><span>${x.n} opp · ${money(x.t)}</span></div>`).join('')}</div><p class="xs mut" style="margin-top:6px">Oportunidades com previsão vencida entram no mês atual.</p></div>
     <div class="card"><h3 style="margin-bottom:10px">Motivos de perda</h3>${motL.length?`<div class="funnel">${motL.map(([k,v])=>`<div class="fr"><span class="sm">${esc(k)}</span><div class="fb"><i class="bad" style="width:${v/mmx*100}%"></i></div><span class="num sm" style="text-align:right">${v}</span></div>`).join('')}</div>`:'<p class="mut sm">Nenhuma perda no período.</p>'}</div></div>
+  ${graficosVend(who,prod)}
   ${S.me==='all'&&who==='all'?`<div class="card flush" style="margin-top:18px"><div style="padding:14px 16px 0"><h3>Produtividade por pessoa</h3></div><div class="tw"><table class="tbl"><thead><tr><th>Pessoa</th><th class="r">Tentativas</th><th class="r">Contatos</th><th class="r">Taxa</th><th class="r">Reuniões ag.</th><th class="r">Realizadas</th><th class="r">Show rate</th><th class="r">Opps</th><th class="r">Vendas</th><th class="r">Receita</th><th class="r">Meta</th></tr></thead><tbody>
     ${prod.map(({x,mt,meta})=>`<tr><td><b>${esc(x.nome)}</b><div class="xs mut">${esc(x.papel)}</div></td><td class="r num">${nf(mt.tent)}</td><td class="r num">${nf(mt.efet)}</td><td class="r num">${pct(mt.efet,mt.tent)}</td><td class="r num">${nf(mt.agend)}</td><td class="r num">${nf(mt.realiz)}</td><td class="r num">${pct(mt.realiz,mt.realiz+mt.noshow)}</td><td class="r num">${nf(mt.oppN)}</td><td class="r num">${nf(mt.vendas)}</td><td class="r num">${money(mt.receita)}</td><td class="r num">${x.papel==='SDR'?(meta.reunioes?pct(mt.realiz,meta.reunioes)+' reun.':'—'):(meta.receita?pct(mt.receita,meta.receita):'—')}</td></tr>`).join('')||'<tr><td colspan="11" class="mut">Cadastre a equipe em Estratégia.</td></tr>'}</tbody></table></div></div>`:''}`;
+}
+
+/* gráficos por vendedor: uma medida por gráfico, mesma escala dentro de cada gráfico */
+function hbar(titulo,sub,rows,fmt,o={}){
+  rows=rows.slice().sort((a,b)=>(+b.v||0)-(+a.v||0));
+  const mx=Math.max(1,...rows.map(r=>Math.max(+r.v||0,+r.meta||0)));
+  const leg=o.leg?`<div class="hb-leg xs mut">${o.leg.map(([c,l])=>`<span><i class="${c}"></i>${l}</span>`).join('')}</div>`:'';
+  return `<div class="card"><h3>${titulo}</h3>${sub?`<p class="xs mut" style="margin-top:2px">${sub}</p>`:''}${leg}
+    <div class="hb">${rows.map(r=>{const v=+r.v||0;const tip=r.nome+': '+fmt(v)+(r.v2!=null?' · '+o.l2+': '+fmt(r.v2):'')+(r.meta?' · meta '+fmt(r.meta)+' ('+pct(v,r.meta)+')':'');
+      return `<div class="hb-r" tabindex="0" data-tip="${esc(tip)}"><span class="hb-n sm">${esc(r.nome)}</span><div class="hb-t">${v>0?`<i class="hb-a" style="width:${v/mx*100}%"></i>`:''}${r.v2>0?`<i class="hb-b" style="width:${r.v2/mx*100}%"></i>`:''}${r.meta?`<b class="hb-m" style="left:${Math.min(100,r.meta/mx*100)}%"></b>`:''}</div><span class="hb-v num sm">${fmt(v)}${r.meta?`<span class="xs mut"> ${pct(v,r.meta)}</span>`:''}</span></div>`}).join('')||'<p class="sm mut">Sem dados.</p>'}</div></div>`;
+}
+function ultimosMeses(n){const out=[];const d=new Date();for(let i=n-1;i>=0;i--){const a=new Date(d.getFullYear(),d.getMonth()-i,1),b=new Date(d.getFullYear(),d.getMonth()-i+1,0);out.push({l:MESES[a.getMonth()],p:[ymd(a),i===0?hoje():ymd(b)]})}return out}
+function graficosVend(who,prod){
+  const meses=ultimosMeses(6);
+  const evol=(ids)=>ids.map(id=>({id,nome:id==='all'?'Equipe':mNome(id),m:meses.map(x=>{const t=metricas(x.p,id);return {l:x.l,rec:t.receita,v:t.vendas,r:t.realiz}})}));
+  const mini=(arr,campo,fmt)=>{const mx=Math.max(1,...arr.flatMap(s=>s.m.map(x=>x[campo])));
+    return `<div class="sm-grid">${arr.map(s=>{const tot=sum(s.m,x=>x[campo]);return `<div class="sm-c"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><b class="sm">${esc(s.nome)}</b><span class="num xs">${fmt(tot)}</span></div><div class="cols">${s.m.map(x=>`<div class="col1" tabindex="0" data-tip="${esc(s.nome+' · '+x.l+': '+fmt(x[campo]))}"><i style="height:${x[campo]/mx*100}%"></i></div>`).join('')}</div><div class="cols-l">${s.m.map(x=>`<span>${x.l}</span>`).join('')}</div></div>`}).join('')}</div>`};
+  if(!(S.me==='all'&&who==='all')){
+    const s=evol([who]);
+    return `<div class="card" style="margin-top:18px"><h3>Sua evolução nos últimos 6 meses</h3><p class="xs mut" style="margin-top:2px">Mesma escala nos três gráficos de cada linha; passe o mouse para ver o valor.</p><div class="grid2" style="margin-top:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${[['rec','Receita fechada',money],['v','Vendas',nf],['r','Reuniões realizadas',nf]].map(([c,l,f])=>`<div><span class="eyebrow">${l}</span>${mini(s.map(x=>({...x,nome:''})),c,f)}</div>`).join('')}</div></div>`;
+  }
+  if(!prod.length)return '';
+  const vend=prod.filter(r=>r.x.papel!=='SDR'&&r.x.papel!=='Gestor'||r.mt.receita>0), sdr=prod.filter(r=>r.x.papel==='SDR'||r.mt.tent>0);
+  const abertas=[...S.opp.values()].filter(o=>o.status==='aberta');
+  const pipe=prod.map(r=>{const os=abertas.filter(o=>o.dono===r.x.id);return {nome:r.x.nome,v:sum(os,o=>o.valor),v2:sum(os,o=>(+o.valor||0)*(+o.prob||0)/100)}}).filter(r=>r.v>0);
+  const rateRow=(r,a,b)=>({nome:r.x.nome,v:r.mt[b]?Math.round(r.mt[a]/r.mt[b]*100):0});
+  const pctF=v=>v+'%';
+  return `<div class="vhead" style="margin:26px 0 12px"><div class="t"><span class="eyebrow">Por vendedor</span><h3 style="font-size:1.25rem">Gráficos da equipe no período</h3><p class="sm mut">Cada gráfico compara as pessoas numa só medida. A marca vertical é a meta do período. Passe o mouse ou toque numa barra para ver os números.</p></div></div>
+  <div class="ch-grid">
+    ${hbar('Receita fechada','Vendas ganhas no período, contra a meta de receita',(vend.length?vend:prod).map(r=>({nome:r.x.nome,v:r.mt.receita,meta:r.meta.receita})),money)}
+    ${hbar('Vendas','Número de contratos ganhos',(vend.length?vend:prod).map(r=>({nome:r.x.nome,v:r.mt.vendas,meta:r.meta.vendas})),nf)}
+    ${hbar('Reuniões realizadas','Contra a meta de reuniões',(sdr.length?sdr:prod).map(r=>({nome:r.x.nome,v:r.mt.realiz,meta:r.meta.reunioes})),nf)}
+    ${hbar('Tentativas de contato','Ligações, WhatsApp, e-mail e LinkedIn registrados',(sdr.length?sdr:prod).map(r=>({nome:r.x.nome,v:r.mt.tent})),nf)}
+    ${hbar('Taxa de contato','Contatos efetivos ÷ tentativas',(sdr.length?sdr:prod).filter(r=>r.mt.tent).map(r=>rateRow(r,'efet','tent')),pctF)}
+    ${hbar('Show rate','Reuniões realizadas ÷ (realizadas + no-show)',prod.filter(r=>r.mt.realiz+r.mt.noshow).map(r=>({nome:r.x.nome,v:Math.round(r.mt.realiz/(r.mt.realiz+r.mt.noshow)*100)})),pctF)}
+    ${hbar('Pipeline aberto','Hoje, independente do período',pipe,money,{l2:'ponderado',leg:[['hb-a','Valor total'],['hb-b','Ponderado pela probabilidade']]})}
+    ${hbar('Win rate','Ganhas ÷ (ganhas + perdidas) no período',prod.filter(r=>r.mt.vendas+r.mt.perdidas.length).map(r=>({nome:r.x.nome,v:Math.round(r.mt.vendas/(r.mt.vendas+r.mt.perdidas.length)*100)})),pctF)}
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Receita por mês, por vendedor</h3><p class="xs mut" style="margin-top:2px">Últimos 6 meses, todos na mesma escala para comparar. O número ao lado do nome é o total do semestre.</p><div style="margin-top:12px">${mini(evol(prod.filter(r=>r.x.papel!=='SDR').map(r=>r.x.id).concat(prod.every(r=>r.x.papel==='SDR')?prod.map(r=>r.x.id):[])),'rec',money)}</div></div>
+  <div class="card" style="margin-top:14px"><h3>Reuniões realizadas por mês, por pessoa</h3><p class="xs mut" style="margin-top:2px">Últimos 6 meses, mesma escala.</p><div style="margin-top:12px">${mini(evol(prod.map(r=>r.x.id)),'r',nf)}</div></div>`;
 }
 
 /* ============ ficha da empresa ============ */
